@@ -2,7 +2,6 @@ package com.example.LibraryManagement.librarymanagement.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 
