@@ -1,6 +1,6 @@
 package com.example.LibraryManagement.librarymanagement.Service;
 
-import com.example.LibraryManagement.librarymanagement.BookRepository.BookRepository;
+import com.example.LibraryManagement.librarymanagement.Repository.BookRepository;
 import com.example.LibraryManagement.librarymanagement.DTO.BookDTO;
 import com.example.LibraryManagement.librarymanagement.Entity.Book;
 import org.springframework.beans.factory.annotation.Autowired;

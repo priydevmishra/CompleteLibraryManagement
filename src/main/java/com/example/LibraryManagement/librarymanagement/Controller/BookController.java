@@ -19,12 +19,12 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
-    @GetMapping("/getAllBooks")
+    @GetMapping("/AllBooks")
     public ResponseEntity<List<Book>> getAllBooks(){
        return ResponseEntity.status(HttpStatus.OK).body(bookService.getAllBooks());
     }
 
-    @GetMapping("/getbookbyid/{id}")
+    @GetMapping("/book/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id){
         Book book = bookService.getBookById(id);
         if(book!=null){
@@ -40,13 +40,13 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(bookDTO));
     }
 
-    @PutMapping("/updatebook/{id}")
+    @PutMapping("/update-book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody BookDTO bookDTO){
         return ResponseEntity.status(HttpStatus.OK).body(bookService.updateBook(id, bookDTO));
     }
 
-    @DeleteMapping("/deletebook/{id}")
+    @DeleteMapping("/delete-book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id){
         return ResponseEntity.noContent().build();

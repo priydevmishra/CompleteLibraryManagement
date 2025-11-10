@@ -2,7 +2,6 @@ package com.example.LibraryManagement.librarymanagement.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 
 @Data
@@ -13,16 +12,17 @@ public class IssueRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private LocalDate issueDate;
     private LocalDate dueDate;
     private LocalDate returnDate;
     private Boolean isReturn;
 
     @ManyToOne
-    @JoinTable(name="user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name="book_id")  // it should not be bidirectionallif you delete issue record user should not be deleted
+    @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 }

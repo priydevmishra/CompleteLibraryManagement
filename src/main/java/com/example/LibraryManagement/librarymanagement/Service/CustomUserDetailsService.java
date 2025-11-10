@@ -1,11 +1,14 @@
 package com.example.LibraryManagement.librarymanagement.Service;
 
-import com.example.LibraryManagement.librarymanagement.BookRepository.UserRepository;
+import com.example.LibraryManagement.librarymanagement.Repository.UserRepository;
+import com.example.LibraryManagement.librarymanagement.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
@@ -13,6 +16,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.getUserByEmail(email).orElseThrow(()->new RuntimeException("User Not Found..."));
+        return userRepository.getUserByEmail(email).orElseThrow(()->new ResourceNotFoundException("User","Email",email));
     }
 }  // this method used at the time of initial Login

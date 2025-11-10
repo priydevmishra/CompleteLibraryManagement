@@ -8,8 +8,8 @@ import java.util.Set;
 @Data
 @Builder
 public class LoginResponseDTO {
-    private String jwtToken;  //mendatory
-    private String email;   //optional
-    private Set<String> roles;  //optional
-
+    private String message;
+    private String jwtToken;
+    private String email;
+    private Set<String> roles;
 }

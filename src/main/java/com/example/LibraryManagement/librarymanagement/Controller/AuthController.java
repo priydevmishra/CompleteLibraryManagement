@@ -3,6 +3,7 @@ package com.example.LibraryManagement.librarymanagement.Controller;
 import com.example.LibraryManagement.librarymanagement.DTO.RequestDTO.LoginRequestDTO;
 import com.example.LibraryManagement.librarymanagement.DTO.RequestDTO.RegisterRequestDTO;
 import com.example.LibraryManagement.librarymanagement.DTO.ResponseDTO.LoginResponseDTO;
+import com.example.LibraryManagement.librarymanagement.DTO.ResponseDTO.RegisterResponseDTO;
 import com.example.LibraryManagement.librarymanagement.Entity.User;
 import com.example.LibraryManagement.librarymanagement.Service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,8 @@ public class AuthController {
     @Autowired
     private AuthenticationService authenticationService;
 
-    @PostMapping("/registernormaluser")
-    public ResponseEntity<User> registerNormalUser(@RequestBody RegisterRequestDTO registerRequestDTO){
+    @PostMapping("/register-user")
+    public ResponseEntity<RegisterResponseDTO> registerNormalUser(@RequestBody RegisterRequestDTO registerRequestDTO){
         return ResponseEntity.status(HttpStatus.OK).body(authenticationService.registerNormalUser(registerRequestDTO));
     }
 

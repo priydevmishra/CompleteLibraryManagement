@@ -1,18 +1,17 @@
 package com.example.LibraryManagement.librarymanagement.Service;
 
-import com.example.LibraryManagement.librarymanagement.BookRepository.BookRepository;
-import com.example.LibraryManagement.librarymanagement.BookRepository.IssueRecordRepository;
-import com.example.LibraryManagement.librarymanagement.BookRepository.UserRepository;
+import com.example.LibraryManagement.librarymanagement.Repository.BookRepository;
+import com.example.LibraryManagement.librarymanagement.Repository.IssueRecordRepository;
+import com.example.LibraryManagement.librarymanagement.Repository.UserRepository;
 import com.example.LibraryManagement.librarymanagement.Entity.Book;
 import com.example.LibraryManagement.librarymanagement.Entity.IssueRecord;
 import com.example.LibraryManagement.librarymanagement.Entity.User;
+import com.example.LibraryManagement.librarymanagement.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class IssueRecordService {
@@ -34,20 +33,14 @@ public class IssueRecordService {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<User> oldUser = userRepository.getUserByEmail(email);
-        User user = null;
-        if(oldUser.isPresent()){
-            user = oldUser.get();
-        }else{
-            throw new RuntimeException("User Cannot Found with Email "+email);
-        }
+        User oldUser = userRepository.getUserByEmail(email).orElseThrow(()->new ResourceNotFoundException("User","Email",email));
 
         IssueRecord issueRecord = new IssueRecord();
         issueRecord.setIssueDate(LocalDate.now());
         issueRecord.setDueDate(LocalDate.now().plusDays(14));
         issueRecord.setIsReturn(false);
         issueRecord.setBook(book);
-        issueRecord.setUser(user);
+        issueRecord.setUser(oldUser);
 
         book.setQuantity(book.getQuantity()-1);
         if(book.getQuantity()==0){

@@ -1,27 +1,38 @@
 package com.example.LibraryManagement.librarymanagement.JWT;
 
-import com.example.LibraryManagement.librarymanagement.BookRepository.UserRepository;
+import com.example.LibraryManagement.librarymanagement.Entity.User;
+import com.example.LibraryManagement.librarymanagement.Repository.UserRepository;
+import com.example.LibraryManagement.librarymanagement.Service.CustomUserDetailsService;
+import com.example.LibraryManagement.librarymanagement.Service.JWTService;
+import com.example.LibraryManagement.librarymanagement.exception.ResourceNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
-public class JWTAuthenticationFilter extends OncePerRequestFilter {  //OnceperRF kaa use basically async ke one request ke liye verify it.
+public class JWTAuthenticationFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private JWTService jwtService;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private UserRepository userRepository;
+    //OnceperRF kaa use basically async ke one request ke liye verify it.
     //this is the main class, jwt service is the implementation of the methods used in this class
     //Steps :-
     //i). getHeader which will be in the form of Bearer abcd.efgh.ijkl  // header.Claims.signature(secretKey)
@@ -32,53 +43,38 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {  //OnceperRF
     //vi). Load the user and create the authentication with userRoles
     //vii). Set the authentication
 
-    @Autowired
-    private final JWTService jwtService;
-
-    @Autowired
-    private final UserRepository userRepository;
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-                                        throws ServletException, IOException {
-        final String authheader = request.getHeader("Authorization");  // jo request aa rhi hai, usme header bhi aayega.
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        final String authHeader = request.getHeader("Authorization");
         final String jwtToken;
         final String email;
 
-        // Check kro ki Authentication header present hai, yaa start ho rhaa hai Bearer se.
-        if(authheader==null || !authheader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // Extract JWT Token from header
-        jwtToken = authheader.substring(7);
-        email = jwtService.extractEmail(jwtToken);
+        jwtToken = authHeader.substring(7);
 
-        //check if we have a email and no authentication exist yet. it is because
-        //, we dont want to reauthenticate because to save time.
-        if(email!=null&& SecurityContextHolder.getContext().getAuthentication()==null){
-            //get the user details from database
-            var userDetails = userRepository.getUserByEmail(email).orElseThrow(()-> new RuntimeException("User not Found"));
+        try {
+            email = jwtService.extractEmail(jwtToken);
+        } catch (Exception e) {
+            // token invalid ya expired hai, ignore and move on
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            //validate the token
-            if(jwtService.isTokenValid(jwtToken, userDetails)){
-                //create the Authentication with user roles
-                List<SimpleGrantedAuthority> authorities = userDetails.getRoles().stream().map(role -> new SimpleGrantedAuthority(role)).collect(Collectors.toList());
 
-                // create authentication with username
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,null,authorities
-                );
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                //Set authentication details
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (userDetails!=null && jwtService.isTokenValid(jwtToken, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // update the security context
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
             }
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
