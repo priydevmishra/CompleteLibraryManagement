@@ -1,8 +1,11 @@
 package com.example.LibraryManagement.librarymanagement.Service;
 
+import com.example.LibraryManagement.librarymanagement.DTO.ResponseDTO.SavedBookResponseDTO;
 import com.example.LibraryManagement.librarymanagement.Repository.BookRepository;
 import com.example.LibraryManagement.librarymanagement.DTO.BookDTO;
 import com.example.LibraryManagement.librarymanagement.Entity.Book;
+import com.example.LibraryManagement.librarymanagement.exception.ResourceNotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,39 +17,36 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     public List<Book> getAllBooks(){
         return bookRepository.findAll();
     }
 
-    public Book getBookById(Long id){
-        Book book = bookRepository.findById(id).orElseThrow(()-> new RuntimeException("Book Not Found with the Id : "+id));
-        return book;
+    public BookDTO getBookById(Long id){
+        Book searchedBook = bookRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Book","Id",id.toString()));
+        return modelMapper.map(searchedBook,BookDTO.class);
     }
 
-    public Book createBook(BookDTO bookDTO){
-       Book book = new Book();
-       book.setTitle(bookDTO.getTitle());
-       book.setAuthorName(bookDTO.getAuthorName());
-       book.setIsbn(bookDTO.getIsbn());
-       book.setQuantity(bookDTO.getQuantity());
-       book.setAvailable(bookDTO.getAvailable());
+    public SavedBookResponseDTO createBook(BookDTO bookDTO){
 
-       return bookRepository.save(book);
+       Book book = modelMapper.map(bookDTO,Book.class);
+       Book savedBook = bookRepository.save(book);
+
+       return new SavedBookResponseDTO("Book successfully saved with name : "+savedBook.getTitle(),savedBook.getTitle(),savedBook.getAuthorName());
     }
 
-    public Book updateBook(Long id, BookDTO bookDTO){
+    public SavedBookResponseDTO updateBook(Long id, BookDTO bookDTO){
         Book oldBook = bookRepository.findById(id).orElseThrow(()->new RuntimeException("Book Not Found"));
-
-        oldBook.setTitle(bookDTO.getTitle());
-        oldBook.setAuthorName(bookDTO.getAuthorName());
-        oldBook.setIsbn(bookDTO.getIsbn());
-        oldBook.setQuantity(bookDTO.getQuantity());
-        oldBook.setAvailable(bookDTO.getAvailable());
-
-        return bookRepository.save(oldBook);
+        modelMapper.map(bookDTO,oldBook);
+        Book savedBook = bookRepository.save(oldBook);
+        return new SavedBookResponseDTO("Book successfully updated with name : "+savedBook.getTitle(),savedBook.getTitle(),savedBook.getAuthorName());
     }
 
-    public void deleteBook(Long id){
-        bookRepository.deleteById(id);
+    public SavedBookResponseDTO deleteBook(Long id){
+        Book book = bookRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Book","Id",id.toString()));
+        bookRepository.delete(book);
+        return new SavedBookResponseDTO("Book successfullt Deleted with name : "+book.getTitle(),book.getTitle(),book.getAuthorName());
     }
 }

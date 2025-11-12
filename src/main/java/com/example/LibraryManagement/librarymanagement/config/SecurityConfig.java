@@ -1,6 +1,7 @@
 package com.example.LibraryManagement.librarymanagement.config;
 
 import com.example.LibraryManagement.librarymanagement.JWT.JWTAuthenticationFilter;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((request)->{
                     request
                             .requestMatchers("/admin/**").hasRole("ADMIN")
-                            .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers("/auth/**","/otp/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -49,5 +50,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 }
