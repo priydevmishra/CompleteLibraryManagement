@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,9 @@ public class User implements UserDetails {
     private String email;
     private String mobileNumber;
     private String password;
+    private LocalDateTime lastOtpSent;
+    private int sentOtpCount;
+    private int totalAttempts;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Otp otp;

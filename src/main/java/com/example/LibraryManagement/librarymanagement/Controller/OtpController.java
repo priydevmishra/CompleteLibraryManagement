@@ -30,9 +30,4 @@ public class OtpController {
         return ResponseEntity.status(HttpStatus.OK).body(otpService.verifyOTP(verifyOtpRequestDTO.getOtp(),verifyOtpRequestDTO.getEmail()));
     }
 
-    @PostMapping("/resend-otp")
-    public ResponseEntity<Integer> resendOTP(@RequestBody EmailRequestDTO emailRequestDTO){
-        Otp otp = otpService.resendOTP(emailRequestDTO.getEmail());
-        return ResponseEntity.status(HttpStatus.OK).body(otp.getValue());
-    }
 }
