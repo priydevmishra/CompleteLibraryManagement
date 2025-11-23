@@ -1,15 +1,24 @@
 package com.example.LibraryManagement.librarymanagement.Service;
 
+import com.example.LibraryManagement.librarymanagement.DTO.ApiResponse;
+import com.example.LibraryManagement.librarymanagement.DTO.MessageResponse;
 import com.example.LibraryManagement.librarymanagement.Entity.Otp;
 import com.example.LibraryManagement.librarymanagement.Entity.User;
 import com.example.LibraryManagement.librarymanagement.Repository.OtpRepository;
 import com.example.LibraryManagement.librarymanagement.Repository.UserRepository;
 import com.example.LibraryManagement.librarymanagement.exception.ResourceNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -21,8 +30,13 @@ public class OtpService {
     @Autowired
     private UserRepository userRepository;
 
-    public Otp generateOTP(String email){
-        int otp = new Random().nextInt(9000) + 1000;
+    @Value("${aws.sqs.queue-url}")
+    private String queueUrl;
+
+    @Autowired
+    private SqsClient sqsClient;
+
+    public MessageResponse generateOTP(String email) throws JsonProcessingException {
         User user = userRepository.getUserByEmail(email).orElseThrow(()-> new ResourceNotFoundException("User","Email",email));
 
         LocalDateTime now = LocalDateTime.now();
@@ -64,7 +78,18 @@ public class OtpService {
 
         userRepository.save(user);
 
-        return user.getOtp();
+        try{
+            Map<String, Object> message = Map.of("email", user.getEmail(), "otp", user.getOtp().getValue(), "message","Your Otp For Login is "+user.getOtp().getValue()+" is valid for next 5 minutes.");
+
+            String json = new ObjectMapper().writeValueAsString(message);
+
+            sqsClient.sendMessage(SendMessageRequest.builder().messageBody(json).queueUrl(queueUrl).build());
+
+            return new MessageResponse("Otp Sent Successfully.", HttpStatus.OK.value(),LocalDateTime.now(),true);
+        }
+        catch (Exception e){
+            return new MessageResponse("Failed to send OTP, Please try after sometime.", HttpStatus.OK.value(),LocalDateTime.now(),true);
+        }
     }
 
     public Boolean verifyOTP(int enteredOtp, String email){

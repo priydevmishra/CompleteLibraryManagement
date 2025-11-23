@@ -20,4 +20,13 @@ public class GlobalExceptionHandler {
         apiResponse.setMessage("The Requested Entity does not exist : "+ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
     }
+
+//    @ExceptionHandler(RateLimitExceedException.class)
+//    public ResponseEntity<ApiResponse> rateLimitExceedExceptionHandler(IllegalStateException ex){
+//        ApiResponse apiResponse = new ApiResponse();
+//        apiResponse.setStatus((short) HttpStatus.NOT_ACCEPTABLE.value());
+//        apiResponse.setMessage("Please wait until new OTP time is not Started");
+//        apiResponse.setError("Reques");
+//
+//    }
 }
