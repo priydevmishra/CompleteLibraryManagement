@@ -7,26 +7,56 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse> resourceNotFoundExceptionHandler(Exception ex){
-        ApiResponse apiResponse = new ApiResponse();
-        apiResponse.setDateTime(LocalDateTime.now());
-        apiResponse.setError("Resource Not Found");
-        apiResponse.setStatus((short) HttpStatus.NOT_FOUND.value());
-        apiResponse.setMessage("The Requested Entity does not exist : "+ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
+    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 404,
+                        "error", "Not Found",
+                        "message", ex.getMessage()
+                )
+        );
     }
 
-//    @ExceptionHandler(RateLimitExceedException.class)
-//    public ResponseEntity<ApiResponse> rateLimitExceedExceptionHandler(IllegalStateException ex){
-//        ApiResponse apiResponse = new ApiResponse();
-//        apiResponse.setStatus((short) HttpStatus.NOT_ACCEPTABLE.value());
-//        apiResponse.setMessage("Please wait until new OTP time is not Started");
-//        apiResponse.setError("Reques");
-//
-//    }
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 400,
+                        "error", "Bad Request",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<Map<String, Object>> handleServerError(InternalServerException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 500,
+                        "error", "Internal Server Error",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleOtherException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 500,
+                        "error", "Unhandled Error",
+                        "message", ex.getMessage()
+                )
+        );
+    }
 }

@@ -17,6 +17,8 @@ public class IssueRecord {
     private LocalDate dueDate;
     private LocalDate returnDate;
     private Boolean isReturn;
+    private long fine;
+    private long lateDays;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

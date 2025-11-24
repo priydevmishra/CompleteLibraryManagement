@@ -13,4 +13,5 @@ public class SavedBookResponseDTO {
     private String message;
     private String title;
     private String AuthorName;
+    private boolean success;
 }
